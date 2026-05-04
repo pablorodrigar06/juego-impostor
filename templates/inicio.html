@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>{{ t("Encuentra al Impostor", "Find the Impostor") }}</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at top, #1a1140, #09051d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+    overflow: hidden;
+}
+
+/* CONTENEDOR */
+.container {
+    width: 360px;
+    padding: 25px;
+    border-radius: 25px;
+    background: linear-gradient(180deg, #1b124a, #0b0725);
+    box-shadow: 0 0 40px rgba(0,0,0,0.9);
+    text-align: center;
+    position: relative;
+    animation: fadeIn 0.6s ease;
+}
+
+/* ANIMACIÓN */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+/* TITULOS */
+.title-small {
+    font-size: 18px;
+    opacity: 0.8;
+    letter-spacing: 2px;
+}
+
+.title-big {
+    font-size: 46px;
+    font-weight: 900;
+    color: #ff3b3b;
+    margin-top: 5px;
+    text-shadow: 0 0 15px rgba(255,0,0,0.6);
+}
+
+/* IMAGEN */
+.image-container {
+    margin: 20px 0;
+    height: 180px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s;
+}
+
+.image-container:hover img {
+    transform: scale(1.05);
+}
+
+/* TEXTO */
+.subtitle {
+    color: #ffd54f;
+    font-weight: bold;
+    margin-top: 10px;
+    letter-spacing: 1px;
+}
+
+.description {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-bottom: 25px;
+}
+
+/* BOTÓN JUGAR */
+.play-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(180deg, #ffd54f, #ffb300);
+    border: none;
+    border-radius: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.play-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #ffd54f;
+}
+
+/* ICONOS */
+.bottom-icons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.icon {
+    background: #2b255c;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 13px;
+}
+
+.icon:hover {
+    background: #3f39a0;
+    transform: scale(1.1);
+}
+
+/* BOTÓN IDIOMA */
+.lang-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    color: white;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.lang-btn:hover {
+    transform: scale(1.1);
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🔊 SONIDOS -->
+<audio id="clickSound" src="/static/sounds/click.mp3"></audio>
+
+<!-- 🌍 IDIOMA -->
+<button class="lang-btn" onclick="playClickAndChangeLang()">
+    🌍 {{ "ES" if session.get("lang") == "en" else "EN" }}
+</button>
+
+<div class="container">
+
+    <div class="title-small">{{ t("ENCUENTRA AL", "FIND THE") }}</div>
+    <div class="title-big">{{ t("IMPOSTOR", "IMPOSTOR") }}</div>
+
+    <div class="image-container">
+        <img src="/static/foto_inicio.png" alt="Imagen del juego">
+    </div>
+
+    <div class="subtitle">
+        {{ t("VERSIÓN FUTBOLEROS", "FOOTBALL EDITION") }}
+    </div>
+
+    <div class="description">
+        {{ t("Palabras, engaños y risas sin fin", "Words, deception and endless fun") }}
+    </div>
+
+    <!-- 🎮 BOTÓN JUGAR -->
+    <button onclick="playAndGo('/menu', 'clickSound')" class="play-btn">
+        {{ t("JUGAR ▶", "PLAY ▶") }}
+    </button>
+
+    <!-- 🔘 ICONOS -->
+    <div class="bottom-icons">
+        <div class="icon" onclick="playAndGo('/manual', 'clickSound')">
+            {{ t("❓ Cómo jugar", "❓ How to play") }}
+        </div>
+
+        <div class="icon" onclick="playAndGo('/configuracion', 'clickSound')">
+            {{ t("👤 Sobre nosotros", "👤 About us") }}
+        </div>
+    </div>
+
+</div>
+
+<script>
+function playAndGo(url, soundId) {
+    const sound = document.getElementById(soundId);
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        window.location.href = url;
+    }, 350);
+}
+
+function toggleLanguage() {
+    const currentLang = "{{ session.get('lang', 'es') }}";
+    const newLang = currentLang === "en" ? "es" : "en";
+
+    fetch("/set_language/" + newLang)
+        .then(() => location.reload());
+}
+function playClickAndChangeLang() {
+    const sound = document.getElementById("clickSound");
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        toggleLanguage();
+    }, 350); // mismo timing que los otros botones
+}
+</script>
+
+</body>
+</html>

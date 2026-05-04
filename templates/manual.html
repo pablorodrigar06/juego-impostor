@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>{{ t("Cómo jugar", "How to play") }}</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at top, #1a1140, #09051d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+}
+
+.container {
+    width: 350px;
+    padding: 25px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #1b124a, #0b0725);
+    box-shadow: 0 0 25px rgba(0,0,0,0.6);
+    text-align: center;
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #2b255c;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: white;
+}
+
+.lang-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    color: white;
+    font-weight: bold;
+}
+
+.title {
+    font-size: 26px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #ffd54f;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.content-box {
+    background: #2b255c;
+    border-radius: 12px;
+    padding: 15px;
+    min-height: 150px;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-y: auto;
+}
+</style>
+</head>
+
+<body>
+
+<button class="lang-btn" onclick="playClickAndChangeLang()">
+    🌍 {{ "ES" if session.get("lang") == "en" else "EN" }}
+</button>
+
+<button onclick="playAndGo('/', 'clickSound')" class="close-btn">❌</button>
+
+<audio id="clickSound" src="/static/sounds/click.mp3"></audio>
+
+<div class="container">
+
+    <div class="title">{{ t("¿NO SABES JUGAR?", "DON'T KNOW HOW TO PLAY?") }}</div>
+    <div class="subtitle">{{ t("DEJA QUE TE LO EXPLIQUE", "LET ME EXPLAIN") }}</div>
+
+    <div class="content-box">
+
+        <p>{{ t("Este es un juego en grupo donde uno de los jugadores es el impostor y los demás deben descubrirlo.", "This is a group game where one player is the impostor and the others must find them.") }}</p>
+
+        <p>{{ t("-Turnos: Cada jugador dice una pista sin decir el nombre directamente.", "-Turns: Each player gives a clue without saying the name directly.") }}</p>
+
+        <p>{{ t("El impostor debe improvisar para no ser descubierto.", "The impostor must improvise to avoid being discovered.") }}</p>
+
+        <p>{{ t("-Votación: Los jugadores votan quién creen que es el impostor.", "-Voting: Players vote who they think the impostor is.") }}</p>
+
+        <p>{{ t("-Resultado: Si el grupo acierta gana, si no, gana el impostor.", "-Result: If the group guesses correctly, they win. If not, the impostor wins.") }}</p>
+
+    </div>
+
+</div>
+
+<script>
+function toggleLanguage() {
+    const currentLang = "{{ session.get('lang', 'es') }}";
+    const newLang = currentLang === "en" ? "es" : "en";
+
+    fetch("/set_language/" + newLang)
+        .then(() => location.reload());
+}
+function playClickAndChangeLang() {
+    const sound = document.getElementById("clickSound");
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        toggleLanguage();
+    }, 350); // mismo timing que los otros botones
+}
+
+function playAndGo(url, soundId) {
+    const sound = document.getElementById(soundId);
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        window.location.href = url;
+    }, 350);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>{{ t("Quiénes somos", "About us") }}</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at top, #1a1140, #09051d);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+}
+
+/* CONTENEDOR */
+.container {
+    width: 360px;
+    padding: 25px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #1b124a, #0b0725);
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    text-align: center;
+    position: relative;
+}
+
+/* BOTONES */
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #2b255c;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: white;
+}
+
+.lang-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    color: white;
+    font-weight: bold;
+}
+
+/* TITULO */
+.title {
+    font-size: 26px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #ffd54f;
+    letter-spacing: 1px;
+}
+
+/* TEXTO */
+.content-box {
+    background: #2b255c;
+    border-radius: 12px;
+    padding: 18px;
+    min-height: 200px;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* NOMBRE DESTACADO */
+.name {
+    color: #00c6ff;
+    font-weight: bold;
+}
+
+/* MARCA */
+.brand {
+    color: #ffd54f;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🌍 IDIOMA -->
+<button class="lang-btn" onclick="playClickAndChangeLang()">
+    🌍 {{ "ES" if session.get("lang") == "en" else "EN" }}
+</button>
+
+<!-- ❌ VOLVER -->
+<button onclick="playAndGo('/', 'clickSound')" class="close-btn">❌</button>
+
+<audio id="clickSound" src="/static/sounds/click.mp3"></audio>
+
+<div class="container">
+
+    <div class="title">
+        {{ t("¿QUIÉNES SOMOS?", "ABOUT US") }}
+    </div>
+
+    <div class="content-box">
+
+        {% if session.get("lang") == "en" %}
+
+        <p>
+        Hi, I'm <span class="name">Pablo Rodríguez García</span>, I'm 20 years old and my dream is to become a video game designer.
+        </p>
+
+        <p>
+        With that goal in mind, I created my own company,
+        <span class="brand">Canaritos.Company</span>, where I work to bring ideas to life and turn them into fun and unique experiences.
+        </p>
+
+        <p>
+        I hope you enjoy all our games as much as I enjoy creating them.
+        </p>
+
+        <p><strong>Thank you for playing!</strong></p>
+
+        {% else %}
+
+        <p>
+        Hola, soy <span class="name">Pablo Rodríguez García</span>, tengo 20 años y mi gran sueño es dedicarme al diseño de videojuegos.
+        </p>
+
+        <p>
+        Con esa ilusión he creado mi propia compañía,
+        <span class="brand">Canaritos Company</span>, donde trabajo para dar vida a ideas y convertirlas en experiencias divertidas y únicas.
+        </p>
+
+        <p>
+        Espero que podáis disfrutar de todos nuestros juegos tanto como yo disfruto creándolos.
+        </p>
+
+        <p><strong>¡Gracias por participar!</strong></p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<script>
+function toggleLanguage() {
+    const currentLang = "{{ session.get('lang', 'es') }}";
+    const newLang = currentLang === "en" ? "es" : "en";
+
+    fetch("/set_language/" + newLang)
+        .then(() => location.reload());
+}
+
+function playSound(id) {
+    document.getElementById(id).play();
+}
+function playClickAndChangeLang() {
+    const sound = document.getElementById("clickSound");
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        toggleLanguage();
+    }, 350); // mismo timing que los otros botones
+}
+function playAndGo(url, soundId) {
+    const sound = document.getElementById(soundId);
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        window.location.href = url;
+    }, 350);
+}
+</script>
+
+</body>
+</html>

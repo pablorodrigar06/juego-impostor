@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>{{ t("Resultado", "Result") }}</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(circle, #1a1140, #0b0620);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+}
+
+/* CONTENEDOR */
+.container {
+    width: 360px;
+    padding: 25px;
+    border-radius: 25px;
+    background: linear-gradient(180deg, #1b124a, #0b0725);
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,0,0,0.9);
+    animation: fadeIn 0.6s ease;
+}
+
+/* TITULO */
+.title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #ffd54f;
+    letter-spacing: 1px;
+}
+
+/* IMAGEN */
+.image-container {
+    margin: 20px 0;
+    height: 230px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.9);
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* IMPOSTOR */
+.impostor-box {
+    background: #2b255c;
+    padding: 30px;
+    border-radius: 15px;
+    font-size: 28px;
+    margin-bottom: 20px;
+    display: none;
+    color: #ff3b3b;
+    font-weight: bold;
+    transform: scale(0.5);
+    opacity: 0;
+}
+
+/* BOTONES */
+.btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border: none;
+    border-radius: 15px;
+    font-size: 17px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+/* REVELAR */
+.reveal-btn {
+    background: linear-gradient(180deg, #ffd54f, #ffb300);
+    color: black;
+}
+
+.reveal-btn:hover {
+    transform: scale(1.05);
+}
+
+/* VOLVER A JUGAR */
+.play-again-btn {
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    color: white;
+}
+
+/* VOLVER */
+.restart-btn {
+    background: linear-gradient(90deg, #28a745, #00ff88);
+    color: white;
+}
+
+/* BOTONES OCULTOS */
+#afterReveal {
+    display: none;
+    opacity: 0;
+}
+
+/* 🌍 BOTÓN IDIOMA */
+.lang-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    color: white;
+}
+
+/* ANIMACIONES */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+@keyframes revealZoom {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+@keyframes glow {
+    from { box-shadow: 0 0 10px red; }
+    to { box-shadow: 0 0 25px red; }
+}
+</style>
+</head>
+
+<body>
+
+<audio id="revealSound" src="/static/sounds/reveal.mp3"></audio>
+<audio id="nextSound" src="/static/sounds/click.mp3"></audio>
+
+<button class="lang-btn" onclick="playClickAndChangeLang()">
+    🌍 {{ "ES" if session.get("lang") == "en" else "EN" }}
+</button>
+
+
+
+
+<div class="container">
+
+    <div class="title">
+        {{ t("¡Empieza el juego bonito!", "Let the beautiful game begin!") }}
+    </div>
+
+    <div class="image-container">
+        <img src="/static/inicio_juego.png" alt="Imagen de arbitro">
+    </div>
+
+    <!-- IMPOSTOR -->
+    <div id="impostor" class="impostor-box">
+        {{ impostor }}
+    </div>
+
+    <!-- REVELAR -->
+    <button id="revealBtn" class="btn reveal-btn" onclick="revealImpostor()">
+        {{ t("REVELAR IMPOSTOR", "REVEAL IMPOSTOR") }}
+    </button>
+
+    <!-- BOTONES -->
+    <div id="afterReveal">
+
+        <button class="btn play-again-btn" onclick="window.location.href='/menu'">
+            {{ t("VOLVER A JUGAR", "PLAY AGAIN") }}
+        </button>
+
+        <button class="btn restart-btn" onclick="window.location.href='/'">
+            {{ t("VOLVER AL INICIO", "BACK TO HOME") }}
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+function revealImpostor() {
+    const impostor = document.getElementById("impostor");
+    const buttons = document.getElementById("afterReveal");
+
+    // mostrar impostor con animación
+    impostor.style.display = "block";
+    impostor.style.animation = "revealZoom 0.5s forwards";
+    impostor.style.animation = "revealZoom 0.5s forwards, glow 1s infinite alternate";
+
+    // ocultar botón
+    document.getElementById("revealBtn").style.display = "none";
+
+    // mostrar botones con delay
+    setTimeout(() => {
+        buttons.style.display = "block";
+        buttons.style.transition = "0.5s";
+        buttons.style.opacity = "1";
+    }, 400);
+}
+
+function toggleLanguage() {
+    const currentLang = "{{ session.get('lang', 'es') }}";
+    const newLang = currentLang === "en" ? "es" : "en";
+
+    fetch("/set_language/" + newLang)
+        .then(() => location.reload());
+}
+
+function playClickAndChangeLang() {
+    const sound = document.getElementById("clickSound");
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        toggleLanguage();
+    }, 350); // mismo timing que los otros botones
+}
+</script>
+
+</body>
+</html>

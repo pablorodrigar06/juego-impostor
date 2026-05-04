@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>{{ t("Tu palabra", "Your word") }}</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(circle, #1a1140, #0b0620);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+}
+
+/* CONTENEDOR */
+.container {
+    width: 360px;
+    padding: 25px;
+    border-radius: 25px;
+    background: linear-gradient(180deg, #1b124a, #0b0725);
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,0,0,0.9);
+    animation: fadeIn 0.6s ease;
+}
+
+/* ANIMACIÓN ENTRADA */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+/* NOMBRE */
+.player-name {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #ffd54f;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255,215,0,0.6);
+}
+
+/* PALABRA */
+.word-box {
+    background: #2b255c;
+    padding: 35px;
+    border-radius: 15px;
+    font-size: 28px;
+    margin-bottom: 20px;
+    display: none;
+    transform: scale(0.5);
+    opacity: 0;
+}
+
+/* BOTONES */
+.btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border: none;
+    border-radius: 15px;
+    font-size: 17px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+/* VER */
+.show-btn {
+    background: linear-gradient(180deg, #ffd54f, #ffb300);
+    color: black;
+}
+
+.show-btn:hover {
+    transform: scale(1.05);
+}
+
+/* SIGUIENTE */
+.next-btn {
+    background: linear-gradient(90deg, #28a745, #00ff88);
+    color: white;
+}
+
+/* OCULTO */
+#nextContainer {
+    display: none;
+    opacity: 0;
+}
+
+/* BOTÓN IDIOMA */
+.lang-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    color: white;
+}
+
+/* ANIMACIONES */
+@keyframes revealZoom {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+        filter: blur(10px);
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+@keyframes glow {
+    from { box-shadow: 0 0 10px #ffd54f; }
+    to { box-shadow: 0 0 20px #ffd54f; }
+}
+</style>
+</head>
+
+<body>
+
+<button class="lang-btn" onclick="playClickAndChangeLang()">
+    🌍 {{ "ES" if session.get("lang") == "en" else "EN" }}
+</button>
+
+<audio id="clickSound" src="/static/sounds/click.mp3"></audio>
+<audio id="nextSound" src="/static/sounds/next.mp3"></audio>
+
+
+<div class="container">
+
+    <!-- 👤 NOMBRE -->
+    <div class="player-name">
+        {{ player.name }}
+    </div>
+
+    <!-- 🔒 PALABRA -->
+    <div id="word" class="word-box">
+        {% if player.is_impostor %}
+            👿 IMPOSTOR 👿
+        {% else %}
+            {{ word }}
+        {% endif %}
+    </div>
+
+    <!-- 👁️ VER -->
+    <button id="showBtn" class="btn show-btn" onclick="showWord()">
+        {{ t("VER PALABRA", "SHOW WORD") }}
+    </button>
+
+    <!-- 🔁 SIGUIENTE -->
+    <div id="nextContainer">
+        <form action="/siguiente" method="POST">
+            <button class="btn next-btn">
+                {{ t("SIGUIENTE JUGADOR", "NEXT PLAYER") }}
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+function showWord() {
+    const word = document.getElementById("word");
+    const next = document.getElementById("nextContainer");
+
+    // mostrar palabra animada
+    word.style.display = "block";
+    word.style.animation = "revealZoom 0.5s forwards, glow 1s infinite alternate";
+
+    // ocultar botón ver
+    document.getElementById("showBtn").style.display = "none";
+
+    // mostrar siguiente con delay
+    setTimeout(() => {
+        next.style.display = "block";
+        next.style.transition = "0.5s";
+        next.style.opacity = "1";
+    }, 400);
+}
+
+function toggleLanguage() {
+    const currentLang = "{{ session.get('lang', 'es') }}";
+    const newLang = currentLang === "en" ? "es" : "en";
+
+    fetch("/set_language/" + newLang)
+        .then(() => location.reload());
+}
+
+function playClickAndChangeLang() {
+    const sound = document.getElementById("clickSound");
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        toggleLanguage();
+    }, 350); // mismo timing que los otros botones
+}
+</script>
+
+</body>
+</html>

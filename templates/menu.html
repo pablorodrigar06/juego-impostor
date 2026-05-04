@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>{{ t("Configuración Juego", "Game Settings") }}</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at top, #1f1a4a, #0b0620);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+}
+
+/* CONTENEDOR */
+.container {
+    width: 360px;
+    padding: 30px;
+    border-radius: 25px;
+    text-align: center;
+    position: relative;
+    background: rgba(20,10,60,0.85);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 40px rgba(0,0,0,0.9);
+    animation: fadeIn 0.6s ease;
+}
+
+/* ANIMACIÓN ENTRADA */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+/* BOTONES */
+.close-btn, .lang-btn {
+    position: absolute;
+    top: 15px;
+    padding: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    color: white;
+}
+
+.close-btn { right: 15px; background: #2f2a6a; }
+.lang-btn { left: 15px; background: linear-gradient(90deg, #007bff, #00c6ff); }
+
+.close-btn:hover, .lang-btn:hover {
+    transform: scale(1.1);
+}
+
+/* TITULO */
+h2 {
+    margin-bottom: 25px;
+    font-size: 28px;
+    color: #ffd54f;
+    text-shadow: 0 0 10px rgba(255,215,0,0.6);
+}
+
+/* INPUTS */
+.player-input {
+    width: 95%;
+    padding: 12px;
+    margin: 6px 0;
+    border-radius: 12px;
+    border: none;
+    background: #2d2a5c;
+    color: white;
+    text-align: center;
+    transition: 0.2s;
+}
+
+.player-input:focus {
+    outline: none;
+    background: #3f39a0;
+    transform: scale(1.03);
+    box-shadow: 0 0 10px #5f57ff;
+}
+
+/* BOTONES */
+.btn {
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    background: linear-gradient(90deg, #3f39a0, #5f57ff);
+    color: white;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #5f57ff;
+}
+
+/* OPCIONES */
+.options {
+    display: flex;
+    gap: 10px;
+}
+
+.option {
+    flex: 1;
+    padding: 12px;
+    background: #2f2a6a;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.option:hover {
+    transform: scale(1.05);
+}
+
+.selected {
+    background: linear-gradient(90deg, #ffc107, #ffdb4d);
+    color: black;
+    font-weight: bold;
+    box-shadow: 0 0 10px #ffc107;
+}
+
+/* BOTÓN START */
+.start-btn {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 15px;
+    border: none;
+    font-size: 17px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #28a745, #00ff88);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.start-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #00ff88;
+}
+</style>
+</head>
+
+<body>
+
+<button class="lang-btn" onclick="playClickAndChangeLang()">
+    🌍 {{ "ES" if session.get("lang") == "en" else "EN" }}
+</button>
+
+<button onclick="playAndGo('/', 'clickSound')" class="close-btn">❌</button>
+
+<audio id="clickSound" src="/static/sounds/click.mp3"></audio>
+
+
+<div class="container">
+
+    <h2>{{ t("MENÚ DE JUEGO", "GAME MENU") }}</h2>
+
+    <form action="/start" method="POST">
+
+        <div id="players-container"></div>
+
+        <button type="button" class="btn" onclick="addPlayer()">+ Añadir jugador</button>
+        <button type="button" class="btn" onclick="clearPlayers()">Limpiar jugadores</button>
+
+        <div class="section">
+            <p>{{ t("Modo de juego", "Game mode") }}</p>
+            <div class="options" id="difficulty">
+                <div class="option selected">Actuales</div>
+                <div class="option">Leyendas</div>
+                <div class="option">Todos</div>
+            </div>
+        </div>
+
+        <input type="hidden" name="difficulty" id="difficultyInput">
+
+        <button type="submit" class="start-btn">
+            {{ t("INICIAR JUEGO", "START GAME") }}
+        </button>
+
+    </form>
+</div>
+
+<script>
+let maxPlayers = 7;
+
+/* CREAR INPUT */
+function createInput(name, index) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.name = "players";
+    input.value = name || "";
+    input.placeholder = `Jugador ${index + 1}`; // 🔥 FIX
+    input.classList.add("player-input");
+    input.style.opacity = "0";
+
+    setTimeout(() => input.style.opacity = "1", 50);
+    return input;
+}
+
+/* AÑADIR */
+function addPlayer() {
+    const container = document.getElementById("players-container");
+
+    if (container.children.length >= maxPlayers) {
+        alert("Máximo 7 jugadores");
+        return;
+    }
+
+    container.appendChild(createInput("", container.children.length));
+}
+
+/* GUARDAR */
+document.querySelector("form").addEventListener("submit", (e) => {
+    const inputs = document.querySelectorAll(".player-input");
+
+    const players = Array.from(inputs)
+        .map(i => i.value.trim())
+        .filter(n => n !== "");
+
+    if (players.length < 3) {
+        alert("Mínimo 3 jugadores");
+        e.preventDefault();
+        return;
+    }
+
+    localStorage.setItem("players", JSON.stringify(players));
+
+    document.getElementById("difficultyInput").value =
+        document.querySelector("#difficulty .selected").textContent;
+});
+
+/* CARGAR */
+window.onload = () => {
+    const container = document.getElementById("players-container");
+
+    let saved = JSON.parse(localStorage.getItem("players"));
+
+    if (!saved || saved.length === 0) {
+        saved = ["", "", ""]; // 🔥 mínimo 3
+    }
+
+    saved.forEach((name, i) => {
+        container.appendChild(createInput(name, i));
+    });
+};
+
+/* LIMPIAR */
+function clearPlayers() {
+    localStorage.removeItem("players");
+    location.reload();
+}
+
+/* OPCIONES */
+document.querySelectorAll('.options').forEach(group => {
+    group.addEventListener('click', e => {
+        if (e.target.classList.contains('option')) {
+            group.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            e.target.classList.add('selected');
+        }
+    });
+});
+
+/* IDIOMA */
+function toggleLanguage() {
+    const lang = "{{ session.get('lang', 'es') }}" === "en" ? "es" : "en";
+    fetch("/set_language/" + lang).then(() => location.reload());
+}
+
+function playClickAndChangeLang() {
+    const sound = document.getElementById("clickSound");
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        toggleLanguage();
+    }, 350); // mismo timing que los otros botones
+}
+
+function playAndGo(url, soundId) {
+    const sound = document.getElementById(soundId);
+
+    sound.currentTime = 0;
+    sound.volume = 0.6;
+    sound.play();
+
+    setTimeout(() => {
+        window.location.href = url;
+    }, 350);
+}
+</script>
+
+</body>
+</html>
